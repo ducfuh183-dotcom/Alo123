@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>English 10 – Ôn thi giữa kì 1</title>
+<style>
+:root{--bg:#f4f6fb;--card:#fff;--text:#1d2433;--muted:#6b7280;--primary:#4f46e5;--ok:#16a34a;--bad:#dc2626;--line:#e5e7eb}
+@media(prefers-color-scheme:dark){:root{--bg:#0f1220;--card:#1a1f33;--text:#e8ebf5;--muted:#9aa3b8;--line:#2c3350}}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.wrap{max-width:640px;margin:0 auto;padding:16px}
+h1{font-size:22px;margin:8px 0 4px}
+.sub{color:var(--muted);margin:0 0 16px;font-size:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:14px}
+label{display:block;font-size:13px;color:var(--muted);margin:12px 0 6px}
+select{width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--text);font-size:16px}
+button{font:inherit;cursor:pointer}
+.btn{width:100%;padding:14px;border:0;border-radius:12px;background:var(--primary);color:#fff;font-weight:600;font-size:16px;margin-top:16px}
+.btn.alt{background:transparent;color:var(--primary);border:1px solid var(--primary);margin-top:10px}
+.opt{display:block;width:100%;text-align:left;padding:14px;margin-top:10px;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--text);font-size:16px}
+.opt:hover:not(:disabled){border-color:var(--primary)}
+.opt.ok{border-color:var(--ok);background:rgba(22,163,74,.12)}
+.opt.bad{border-color:var(--bad);background:rgba(220,38,38,.12)}
+.bar{height:8px;background:var(--line);border-radius:99px;overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--primary);width:0;transition:width .25s}
+.top{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:8px}
+.tag{display:inline-block;font-size:12px;padding:3px 10px;border-radius:99px;background:rgba(79,70,229,.12);color:var(--primary);margin-bottom:10px}
+.q{font-size:19px;font-weight:600;line-height:1.45}
+.exp{margin-top:12px;padding:10px 12px;border-radius:10px;background:rgba(79,70,229,.1);font-size:14px}
+.big{font-size:48px;font-weight:700;text-align:center;margin:6px 0}
+.center{text-align:center}
+.wrongitem{padding:10px 0;border-top:1px solid var(--line);font-size:14px}
+.wrongitem b{color:var(--ok)}
+.stats{font-size:13px;color:var(--muted);margin-top:12px}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="home">
+    <h1>📘 English 10 – Giữa kì 1</h1>
+    <p class="sub"><span id="total"></span> câu trắc nghiệm · Unit 1–4 · Ngữ pháp · Phát âm · Giao tiếp</p>
+    <div class="card">
+      <label for="cat">Chủ đề</label>
+      <select id="cat"></select>
+      <label for="num">Số câu</label>
+      <select id="num">
+        <option value="10">10 câu</option>
+        <option value="20" selected>20 câu</option>
+        <option value="50">50 câu</option>
+        <option value="0">Tất cả</option>
+      </select>
+      <button class="btn" id="start">Bắt đầu</button>
+      <div class="stats" id="stats"></div>
+    </div>
+  </div>
+
+  <div id="quiz" class="hidden">
+    <div class="top"><span id="pos"></span><span id="score"></span></div>
+    <div class="bar"><i id="prog"></i></div>
+    <div class="card" style="margin-top:14px">
+      <div class="tag" id="qcat"></div>
+      <div class="q" id="qtext"></div>
+      <div id="opts"></div>
+      <div class="exp hidden" id="exp"></div>
+      <button class="btn hidden" id="next">Câu tiếp theo</button>
+    </div>
+    <button class="btn alt" id="quit">Thoát</button>
+  </div>
+
+  <div id="result" class="hidden">
+    <div class="card center">
+      <div>Kết quả của bạn</div>
+      <div class="big" id="rscore"></div>
+      <div id="rmsg" class="sub"></div>
+      <button class="btn" id="retryWrong">Làm lại các câu sai</button>
+      <button class="btn alt" id="again">Về trang chủ</button>
+    </div>
+    <div class="card hidden" id="wrongbox"><b>Các câu sai</b><div id="wronglist"></div></div>
+  </div>
+</div>
+
+<script>
+// Format: [category, question, CORRECT answer, wrong1, wrong2, wrong3, explanation(optional)]
+// Đáp án được xáo trộn ngẫu nhiên khi chạy app.
+const QUESTIONS = [
+// ===== UNIT 1: FAMILY LIFE (30) =====
+["U1 Family life","Tasks like cooking, cleaning and shopping at home are called ___.","household chores","hobbies","exams","sports"],
+["U1 Family life","The person who earns money to support the family is the ___.","breadwinner","homemaker","babysitter","neighbour"],
+["U1 Family life","A person who stays at home to look after the house and children is a ___.","homemaker","breadwinner","manager","tourist"],
+["U1 Family life","'Take out the rubbish' means to ___.","put the rubbish in the outside bin","buy new rubbish bags","burn the paper","clean the kitchen"],
+["U1 Family life","After dinner, my brother usually ___ the dishes.","washes","cooks","irons","sweeps"],
+["U1 Family life","She ___ the laundry every Saturday.","does","makes","takes","sets"],
+["U1 Family life","Use a broom to ___ the floor.","sweep","boil","fry","iron"],
+["U1 Family life","We ___ clothes to remove creases.","iron","mop","boil","dust"],
+["U1 Family life","A family with parents and their children only is a ___ family.","nuclear","extended","national","public"],
+["U1 Family life","A family that includes grandparents, aunts, uncles and cousins is an ___ family.","extended","nuclear","empty","unique"],
+["U1 Family life","Your brother or sister is your ___.","sibling","parent","neighbour","guardian"],
+["U1 Family life","It's my ___ to look after my little brother after school.","responsibility","hobby","holiday","salary"],
+["U1 Family life","The difference in attitudes between young and older people is the generation ___.","gap","bridge","line","wall"],
+["U1 Family life","Strict parents usually make many ___ for their children.","rules","gifts","jokes","songs"],
+["U1 Family life","Eating meals together helps strengthen the family ___.","bond","bill","trade","fashion"],
+["U1 Family life","Buying food and things for the home is called ___ shopping.","grocery","fashion","window","luxury"],
+["U1 Family life","My mother is very ___. She always listens to our problems and encourages us.","supportive","careless","lazy","selfish"],
+["U1 Family life","'Look after' is closest in meaning to ___.","take care of","look for","look at","give up"],
+["U1 Family life","'Get on well with' means to ___.","have a good relationship with","get into","get off","argue with"],
+["U1 Family life","Family members should ___ the housework equally.","share","keep","miss","avoid"],
+["U1 Family life","Money that parents give children regularly to spend is called ___ money.","pocket","paper","bank","gold"],
+["U1 Family life","'Tidy up your room' means ___ your room.","make it neat","paint","leave","sell"],
+["U1 Family life","We don't say 'many housework' because 'housework' is an ___ noun.","uncountable","countable","irregular","plural"],
+["U1 Family life","We ___ the bed every morning.","make","do","take","set"],
+["U1 Family life","Please ___ the table. Dinner is ready.","set","build","fix","hang"],
+["U1 Family life","'She takes after her mother' means she ___ her mother.","looks or behaves like","takes care of","takes photos of","argues with"],
+["U1 Family life","Your uncle's daughter is your ___.","cousin","niece","sibling","grandmother"],
+["U1 Family life","'Bring up a child' means to ___ a child.","raise","lift","follow","punish"],
+["U1 Family life","Parents should be good ___ for their children to follow.","role models","roll models","rule models","role makers"],
+["U1 Family life","Cleaning, cooking and tidying the house is called ___.","housework","homework","network","artwork"],
+
+// ===== UNIT 2: HUMANS AND THE ENVIRONMENT (30) =====
+["U2 Environment","Dirty or harmful substances in the air, water or soil are called ___.","pollution","education","fashion","tradition"],
+["U2 Environment","The rise in the Earth's average temperature is called global ___.","warming","cooling","shopping","sharing"],
+["U2 Environment","To ___ means to use materials again by turning them into new products.","recycle","pollute","waste","destroy"],
+["U2 Environment","Which gas is the main cause of the greenhouse effect?","carbon dioxide","oxygen","nitrogen","helium"],
+["U2 Environment","Animals that may soon disappear from the Earth are ___ species.","endangered","common","domestic","local"],
+["U2 Environment","Cutting down large areas of forest is called ___.","deforestation","reforestation","recycling","conservation"],
+["U2 Environment","Reduce, reuse and ___ are the three Rs.","recycle","repeat","remove","reply"],
+["U2 Environment","Solar and wind power are examples of ___ energy.","renewable","fossil","nuclear waste","harmful"],
+["U2 Environment","Coal, oil and natural gas are ___ fuels.","fossil","green","solar","clean"],
+["U2 Environment","The natural home of an animal or plant is its ___.","habitat","hotel","factory","market"],
+["U2 Environment","'Wildlife' refers to ___.","wild animals and plants","pet animals","farm machines","city buildings"],
+["U2 Environment","To ___ nature means to protect it from damage or loss.","conserve","ruin","ignore","pollute"],
+["U2 Environment","Plastic bags are not ___, so they stay in the soil for hundreds of years.","biodegradable","recyclable paper","edible","valuable"],
+["U2 Environment","Products that do not harm the environment are ___.","eco-friendly","harmful","wasteful","artificial"],
+["U2 Environment","Paper, bottles and cans left on streets or in parks are ___.","litter","energy","wildlife","fuel"],
+["U2 Environment","Long-term changes in weather patterns around the world are called ___ change.","climate","clothes","culture","career"],
+["U2 Environment","Water, coal, forests and oil are ___ resources.","natural","artificial","social","digital"],
+["U2 Environment","The illegal hunting of wild animals is called ___.","poaching","fishing","farming","camping"],
+["U2 Environment","If a species is ___, it no longer exists anywhere.","extinct","endangered","protected","rare"],
+["U2 Environment","A ___ is a long period with little or no rain.","drought","flood","storm","earthquake"],
+["U2 Environment","A place where rubbish is buried in the ground is a ___.","landfill","greenhouse","museum","reserve"],
+["U2 Environment","Your carbon ___ is the amount of carbon dioxide your activities produce.","footprint","handprint","fingerprint","signature"],
+["U2 Environment","Vegetables grown without chemicals are called ___ vegetables.","organic","plastic","fossil","nuclear"],
+["U2 Environment","Factories should not release dirty ___ into rivers.","waste water","clean air","fresh water","rain"],
+["U2 Environment","To save energy, we should turn ___ the lights when we leave a room.","off","on","up","into"],
+["U2 Environment","Using resources in a way that doesn't harm the future is ___ development.","sustainable","dangerous","rapid","careless"],
+["U2 Environment","Gases released into the air by cars and factories are called ___.","emissions","emotions","exhibitions","expressions"],
+["U2 Environment","Wind turbines are used to produce ___.","electricity","plastic","paper","gasoline"],
+["U2 Environment","The adjective of 'pollution' is ___.","polluted","pollutive","pollutious","pollutal"],
+["U2 Environment","An ___ is a community of living things and their environment.","ecosystem","economy","engine","exam"],
+
+// ===== UNIT 3: MUSIC (30) =====
+["U3 Music","Pop, rock, jazz and folk are different music ___.","genres","chores","tasks","routes"],
+["U3 Music","A person who writes music is a ___.","composer","conductor","dancer","painter"],
+["U3 Music","The words of a song are its ___.","lyrics","rhythm","genre","tune"],
+["U3 Music","The main tune of a song is called the ___.","melody","audience","stage","album"],
+["U3 Music","The pattern of beats in music is called ___.","rhythm","lyric","genre","concert"],
+["U3 Music","A large group of musicians who play classical music together is an ___.","orchestra","audience","album","stadium"],
+["U3 Music","The person who leads an orchestra is the ___.","conductor","composer","director of film","dancer"],
+["U3 Music","A group of people who sing together is a ___.","choir","crowd","team","gang"],
+["U3 Music","A collection of songs released together is an ___.","album","audience","orchestra","instrument"],
+["U3 Music","The people who watch a performance are the ___.","audience","orchestra","choir","band"],
+["U3 Music","Guitar, piano, violin and drums are musical ___.","instruments","tools of farm","machines of office","vehicles"],
+["U3 Music","A song that is easy to remember and enjoyable is ___.","catchy","boring","silent","rough"],
+["U3 Music","Traditional music that belongs to a community or country is ___ music.","folk","rock","electronic","hip hop"],
+["U3 Music","'Quan ho' is a ___ folk music genre of Vietnam.","traditional","modern western","electronic","heavy metal"],
+["U3 Music","To write a piece of music is to ___ it.","compose","compare","complain","collect"],
+["U3 Music","A ___ is a person who sings.","vocalist","violinist","pianist","drummer"],
+["U3 Music","A person who plays the piano is a ___.","pianist","violinist","guitarist","drummer"],
+["U3 Music","A person who is a great admirer of a singer or band is a ___.","fan","fun","fin","fen"],
+["U3 Music","If you are ___ jazz, you like it very much.","into","in at","onto","over"],
+["U3 Music","To ___ along means to sing together with a song that is playing.","sing","sang","sung","singing"],
+["U3 Music","A song that is at the top of the ___ is very popular.","charts","maps","menus","tables"],
+["U3 Music","Soft and relaxing music is described as ___.","soothing","noisy","harsh","annoying"],
+["U3 Music","A song sung to help a baby go to sleep is a ___.","lullaby","anthem","rap","march"],
+["U3 Music","The song that represents a country is its national ___.","anthem","album","concert","melody"],
+["U3 Music","A ___ is a live musical performance in front of an audience.","concert","lecture","exam","meeting"],
+["U3 Music","Someone who has a natural ability to do something well is ___.","talented","tired","terrible","timid"],
+["U3 Music","We use ___ to listen to music privately without disturbing others.","headphones","handbags","hammers","helmets"],
+["U3 Music","A ___ show is a TV competition where people perform their skills.","talent","tall","tiny","tough"],
+["U3 Music","Classical music is often played at a(n) ___.","concert hall","gas station","bus stop","supermarket"],
+["U3 Music","She has a beautiful voice and sings in a ___. (a small music group)","band","bend","bank","bond"],
+
+// ===== UNIT 4: FOR A BETTER COMMUNITY (30) =====
+["U4 Community","A person who does work to help others without being paid is a ___.","volunteer","employer","customer","passenger"],
+["U4 Community","The people living in the same area form a ___.","community","company","collection","competition"],
+["U4 Community","An organisation that helps people in need is a ___.","charity","factory","bank","casino"],
+["U4 Community","To ___ means to give money or goods to help others.","donate","borrow","steal","sell"],
+["U4 Community","The area around your home is your ___.","neighbourhood","nation","continent","planet"],
+["U4 Community","Which word means 'belonging to a particular area'?","local","global","foreign","distant"],
+["U4 Community","The students will ___ a charity event to help poor children.","organise","ignore","cancel","avoid"],
+["U4 Community","We want to ___ money for the flood victims.","raise","rise","arise","rice"],
+["U4 Community","People who have no home to live in are ___.","homeless","careless","useless","hopeless"],
+["U4 Community","The ___ are older people, often over 65.","elderly","youth","infants","teenagers"],
+["U4 Community","People who cannot use some body parts normally are often called ___ people.","disabled","healthy","wealthy","skilled"],
+["U4 Community","Students can ___ the beach by picking up rubbish.","clean up","cut up","set up","give up"],
+["U4 Community","Raising money for a cause is called ___.","fundraising","fund-rising ride","fan-making","farming"],
+["U4 Community","'Make a difference' means to have a ___ effect on a situation.","positive","negative","boring","silent"],
+["U4 Community","'Give someone a hand' means to ___ them.","help","hit","call","follow"],
+["U4 Community","He wants to ___ in the Green Summer campaign.","take part","take place","take off","take care"],
+["U4 Community","Work done to benefit people in the community is community ___.","service","salary","season","scene"],
+["U4 Community","A ___ is a place that provides a safe home for people in need.","shelter","studio","stadium","supermarket"],
+["U4 Community","An ___ is a place where children without parents live and are cared for.","orphanage","airport","cinema","factory"],
+["U4 Community","Their donations ___ greatly to the success of the project.","contributed","conducted","competed","contained"],
+["U4 Community","Volunteering will ___ both you and the people you help.","benefit","damage","scare","delay"],
+["U4 Community","Poor families are 'in ___'.","need","needs of","needing","needed"],
+["U4 Community","A person who teaches students individually or in small groups is a ___.","tutor","tutorial robot","tourist","traveller"],
+["U4 Community","Parks, libraries and squares are ___ places.","public","private","personal","secret"],
+["U4 Community","A ___ home is a place where old people live and are cared for.","nursing","nurse's","nursed","nurse"],
+["U4 Community","Giving blood to help patients is called blood ___.","donation","dictation","decoration","destination"],
+["U4 Community","A person who receives something (like help or a gift) is a ___.","recipient","receptionist","recorder","reporter"],
+["U4 Community","A company that gives money to support an event or a team is a ___.","sponsor","spectator","speaker","spender"],
+["U4 Community","An ___ is a new plan or action to solve a problem.","initiative","injury","invention error","interview"],
+["U4 Community","Joining volunteer activities helps young people develop ___ skills.","social","solar","soccer","sour"],
+
+// ===== GRAMMAR: PRESENT SIMPLE vs PRESENT CONTINUOUS (25) =====
+["Grammar","My mother ___ dinner every evening.","cooks","cook","is cooking","cooking","Thói quen lặp lại hằng ngày → hiện tại đơn; chủ ngữ số ít thêm -s."],
+["Grammar","Look! The baby ___.","is crying","cries","cry","crying","'Look!' → hành động đang xảy ra → hiện tại tiếp diễn."],
+["Grammar","Water ___ at 100 degrees Celsius.","boils","is boiling","boil","boiled","Sự thật hiển nhiên → hiện tại đơn."],
+["Grammar","They ___ TV now.","are watching","watch","watches","is watching","'now' → hiện tại tiếp diễn."],
+["Grammar","She ___ to school by bike every day.","goes","go","is going","going","'every day' → hiện tại đơn."],
+["Grammar","I ___ my homework at the moment.","am doing","do","does","doing","'at the moment' → hiện tại tiếp diễn."],
+["Grammar","'Where's Dad?' 'He ___ the car in the garage.'","is washing","washes","wash","washing","Đang xảy ra lúc nói."],
+["Grammar","He usually ___ up at six o'clock.","gets","get","is getting","getting","'usually' → hiện tại đơn."],
+["Grammar","We ___ football on Sundays.","play","plays","are playing","playing","'on Sundays' → thói quen."],
+["Grammar","Listen! Someone ___ the guitar.","is playing","plays","play","played","'Listen!' → đang diễn ra."],
+["Grammar","The sun ___ in the east.","rises","is rising","rise","rose","Sự thật hiển nhiên."],
+["Grammar","My brother ___ his phone. It's so annoying!","is always losing","always loses","always lose","has lost","Hiện tại tiếp diễn + always diễn tả sự phàn nàn."],
+["Grammar","How often ___ you wash the dishes?","do","does","are","is","Câu hỏi hiện tại đơn với 'you' dùng 'do'."],
+["Grammar","___ your parents working now?","Are","Do","Does","Is","'now' + chủ ngữ số nhiều → Are."],
+["Grammar","Tom ___ like carrots.","doesn't","don't","isn't","not","Phủ định hiện tại đơn, ngôi thứ ba số ít → doesn't."],
+["Grammar","She ___ late for class.","is never","never is","never be","not never","Trạng từ tần suất đứng sau 'be'."],
+["Grammar","Next Sunday, we ___ to visit our grandparents (a fixed plan).","are going","go","goes","went","Kế hoạch đã sắp xếp → hiện tại tiếp diễn."],
+["Grammar","The train ___ at 8 p.m. tomorrow.","leaves","is leaving now","leave","leaving","Lịch trình cố định → hiện tại đơn."],
+["Grammar","Which sentence is correct?","He goes to school by bus.","He go to school by bus.","He going to school by bus.","He is go to school by bus."],
+["Grammar","At the moment, I ___ a very interesting book.","am reading","read","reads","reading","'at the moment' → hiện tại tiếp diễn."],
+["Grammar","Does she ___ English?","speak","speaks","speaking","to speak","Sau does dùng động từ nguyên mẫu."],
+["Grammar","They ___ at home now.","aren't","don't","doesn't","isn't","'now' + They → aren't."],
+["Grammar","Every morning, my father ___ the newspaper.","reads","is reading","read","reading","'Every morning' → thói quen."],
+["Grammar","It ___ at the moment, so take an umbrella.","is raining","rains","rain","rained","Đang xảy ra → hiện tại tiếp diễn."],
+["Grammar","Mai and her mother ___ in the kitchen right now.","are cooking","cooks","cook","is cooking","'right now' + chủ ngữ số nhiều → are cooking."],
+
+// ===== GRAMMAR: STATIVE VERBS (10) =====
+["Grammar","I ___ what you mean.","understand","am understanding","understanding","understands","'understand' là động từ chỉ trạng thái, không dùng tiếp diễn."],
+["Grammar","This cake ___ delicious.","tastes","is tasting","taste","tasting","Taste (có vị) là stative verb."],
+["Grammar","I ___ that he is right.","believe","am believing","believes","believing","Believe là stative verb."],
+["Grammar","He ___ a new car.","has","is having","have","having","'have' mang nghĩa sở hữu thì không dùng tiếp diễn."],
+["Grammar","We ___ this song very much.","love","are loving","loves","loving","Love là stative verb."],
+["Grammar","Do you ___ that man?","know","knowing","to knowing","are knowing","Know là stative verb."],
+["Grammar","The soup ___ good.","smells","is smelling","smell","smelling","Smell (có mùi) là stative verb."],
+["Grammar","She ___ tired today.","seems","is seeming","seem","seeming","Seem là stative verb."],
+["Grammar","Which verb is a stative verb?","know","run","write","dance"],
+["Grammar","Which sentence is INCORRECT?","I am wanting some water.","I want some water.","She likes music.","They need help."],
+
+// ===== GRAMMAR: ARTICLES (15) =====
+["Grammar","She is ___ engineer.","an","a","the","no article","Engineer bắt đầu bằng nguyên âm → an."],
+["Grammar","___ sun is a star.","The","A","An","No article","Duy nhất → the."],
+["Grammar","I have ___ umbrella.","an","a","the","no article"],
+["Grammar","He plays ___ guitar very well.","the","a","an","no article","Nhạc cụ đi với the."],
+["Grammar","I like ___ music.","no article","a","an","the","Nói chung → không mạo từ."],
+["Grammar","She goes to ___ school by bus.","no article","a","an","the","go to school (với mục đích học) → không mạo từ."],
+["Grammar","I'll be back in ___ hour.","an","a","the","no article","'hour' có âm /aʊ/ (h câm) → an."],
+["Grammar","He is ___ honest man.","an","a","the","no article","'honest' h câm → an."],
+["Grammar","They sailed across ___ Pacific Ocean.","the","a","an","no article","Tên đại dương dùng the."],
+["Grammar","This is ___ university.","a","an","the","no article","'university' bắt đầu âm /juː/ → a."],
+["Grammar","My father is ___ doctor.","a","an","the","no article"],
+["Grammar","Please close ___ door.","the","a","an","no article","Cả hai cùng biết cái cửa nào → the."],
+["Grammar","Lan has ___ cat. ___ cat is black.","a - The","the - A","an - The","a - A"],
+["Grammar","Vietnam is in ___ Southeast Asia.","no article","the","a","an"],
+["Grammar","She eats ___ apple every day.","an","a","the","no article"],
+
+// ===== GRAMMAR: GERUND & INFINITIVE (15) =====
+["Grammar","I enjoy ___ music.","listening to","to listen to","listen to","listened to","enjoy + V-ing."],
+["Grammar","She wants ___ a singer.","to be","being","be","been","want + to V."],
+["Grammar","He decided ___ as a volunteer.","to work","working","work","worked","decide + to V."],
+["Grammar","They avoid ___ plastic bags.","using","to use","use","used","avoid + V-ing."],
+["Grammar","Would you like ___ with us?","to come","coming","come","came","would like + to V."],
+["Grammar","My mother lets me ___ out with friends.","go","to go","going","went","let + O + V (không to)."],
+["Grammar","He is good at ___ the piano.","playing","to play","play","played","Sau giới từ → V-ing."],
+["Grammar","She hopes ___ the exam.","to pass","passing","pass","passed","hope + to V."],
+["Grammar","I look forward to ___ you.","seeing","see","to see","saw","look forward to + V-ing."],
+["Grammar","He suggested ___ a charity concert.","holding","to hold","hold","held","suggest + V-ing."],
+["Grammar","My dad stopped ___ last year. He is healthier now.","smoking","to smoke","smoke","smoked"],
+["Grammar","It is important ___ the environment.","to protect","protecting","protect","protected","It is + adj + to V."],
+["Grammar","We couldn't help ___ when we heard the joke.","laughing","to laugh","laugh","laughed","can't help + V-ing."],
+["Grammar","The teacher made us ___ the room.","clean","to clean","cleaning","cleaned","make + O + V (không to)."],
+["Grammar","I'm interested in ___ the guitar.","learning","to learn","learn","learned","interested in + V-ing."],
+
+// ===== GRAMMAR: PRESENT PERFECT (15) =====
+["Grammar","I ___ here for five years.","have lived","live","lived","am living","for + khoảng thời gian → hiện tại hoàn thành."],
+["Grammar","She ___ never ___ to Hanoi.","has been","have been","is being","was being"],
+["Grammar","They ___ just arrived.","have","has","are","did","have/has + just + V3."],
+["Grammar","I haven't seen him ___ Monday.","since","for","from","at","since + mốc thời gian."],
+["Grammar","We have known each other ___ 2020.","since","for","during","in","since + mốc thời gian."],
+["Grammar","___ you ever eaten sushi?","Have","Do","Did","Are"],
+["Grammar","He ___ his homework yet.","hasn't finished","didn't finish","doesn't finish","isn't finishing","yet → hiện tại hoàn thành (phủ định)."],
+["Grammar","I ___ my keys. I can't find them.","have lost","lose","am losing","was losing","Kết quả ở hiện tại."],
+["Grammar","My brother ___ in HCMC since 2018.","has lived","lives","lived","is living"],
+["Grammar","She has worked here ___ ten years.","for","since","from","in","for + khoảng thời gian."],
+["Grammar","What is the past participle of 'go'?","gone","went","going","goed"],
+["Grammar","What is the past participle of 'write'?","written","wrote","writing","writed"],
+["Grammar","How long ___ you studied English?","have","did","do","are"],
+["Grammar","We ___ already cleaned the room.","have","has","did","are"],
+["Grammar","I ___ him yesterday.","saw","have seen","see","am seeing","yesterday → quá khứ đơn."],
+
+// ===== GRAMMAR: COMPARISON (10) =====
+["Grammar","This book is ___ than that one.","more interesting","interestinger","most interesting","the more interesting"],
+["Grammar","She is the ___ student in our class.","tallest","taller","more tall","most tall"],
+["Grammar","My house is ___ than yours.","bigger","more big","biggest","the bigger"],
+["Grammar","Today is ___ than yesterday.","hotter","more hot","hottest","hoter"],
+["Grammar","What is the comparative form of 'good'?","better","gooder","more good","best"],
+["Grammar","Mai is as ___ as her sister.","tall","taller","tallest","more tall"],
+["Grammar","This is the ___ beautiful beach I have ever seen.","most","more","very","much"],
+["Grammar","He runs ___ than me.","faster","more fast","fastest","fastly"],
+["Grammar","What is the superlative form of 'bad'?","worst","baddest","most bad","worse"],
+["Grammar","Which sentence is correct?","English is easier than Maths.","English is more easy than Maths.","English is easy than Maths.","English is the easier than Maths."],
+
+// ===== GRAMMAR: MODAL VERBS (10) =====
+["Grammar","You ___ wear a helmet when riding a motorbike. It's the law.","must","may","might","could"],
+["Grammar","You ___ smoke in the hospital.","mustn't","needn't","don't have to","can"],
+["Grammar","She ___ swim when she was five.","could","can","must","should"],
+["Grammar","You look tired. You ___ get some rest.","should","mustn't","can't","would"],
+["Grammar","Students ___ wear uniform on Mondays. It's the school rule.","have to","may","might","could"],
+["Grammar","You ___ pay to enter the museum on Sundays. It's free.","don't have to","mustn't","can't","shouldn't","don't have to = không cần thiết."],
+["Grammar","___ I use your pen, please?","May","Must","Should","Would"],
+["Grammar","It's raining. You ___ take an umbrella.","had better","had","are better","would better"],
+["Grammar","___ you pass me the salt, please?","Could","Must","Should","Need"],
+["Grammar","Which sentence expresses prohibition?","You mustn't park here.","You don't have to park here.","You may park here.","You should park here."],
+
+// ===== PRONUNCIATION (15) =====
+["Pronunciation","Choose the word whose underlined part is pronounced differently: play<u>ed</u> / stopp<u>ed</u> / walk<u>ed</u> / watch<u>ed</u>","played","stopped","walked","watched","played đọc /d/, các từ còn lại đọc /t/."],
+["Pronunciation","Which word ends with the sound /ɪd/?","wanted","played","stopped","cleaned"],
+["Pronunciation","Which word ends with the sound /z/?","dogs","cats","books","maps"],
+["Pronunciation","Which word ends with the sound /ɪz/?","watches","books","cats","maps"],
+["Pronunciation","Which word has the sound /ð/?","this","thin","think","thank"],
+["Pronunciation","Which word has a different sound for 'ch'?","school","chair","church","teacher","school /k/, còn lại /tʃ/."],
+["Pronunciation","Which word begins with a silent 'h'?","hour","house","hat","happy"],
+["Pronunciation","Which word has a different vowel sound?","heart","learn","work","girl","heart /ɑː/, còn lại /ɜː/."],
+["Pronunciation","Which word has the 'ch' pronounced /ʃ/?","machine","chair","chicken","church"],
+["Pronunciation","Which word begins with the sound /dʒ/?","gym","gift","game","go"],
+["Pronunciation","Which word has a different stress pattern?","begin","happy","carry","doctor","begin nhấn âm 2, còn lại nhấn âm 1."],
+["Pronunciation","Which word has a different stress pattern?","compose","rhythm","concert","melody","compose nhấn âm 2."],
+["Pronunciation","Which word has a different stress pattern?","destroy","garbage","plastic","energy","destroy nhấn âm 2."],
+["Pronunciation","Where is the main stress in 'environment'?","2nd syllable","1st syllable","3rd syllable","4th syllable","en-VI-ron-ment."],
+["Pronunciation","Which word has a different stress pattern?","musician","popular","classical","instrument","musician nhấn âm 2."],
+
+// ===== COMMUNICATION (15) =====
+["Communication","'Thank you for helping me.' - '___'","You're welcome.","Yes, please.","I'm sorry.","Never mind."],
+["Communication","'Would you like some tea?' - '___'","Yes, please.","You're welcome.","I'm fine.","It doesn't matter."],
+["Communication","'How about going to the concert tonight?' - '___'","That sounds great!","I'm sorry to hear that.","Not at all.","Don't mention it."],
+["Communication","'I'm sorry I'm late.' - '___'","That's OK.","You're welcome.","Yes, I am.","Good luck!"],
+["Communication","'Congratulations on winning the contest!' - '___'","Thank you.","You're welcome.","Never mind.","Excuse me."],
+["Communication","'Can you help me with my homework?' - '___'","Sure, no problem.","Yes, I can't.","Good idea, thanks.","I'm very well."],
+["Communication","'I think we should recycle more.' - '___'","I couldn't agree more.","I'm afraid not.","Don't worry.","Never mind."],
+["Communication","'What kind of music do you like?' - '___'","I like pop music.","I like to music.","I am pop.","Yes, I do."],
+["Communication","'Would you mind opening the window?' - '___'","Not at all.","Yes, I would.","Yes, please.","I'm sorry, I do."],
+["Communication","'Let's join the volunteer club.' - '___'","Good idea!","You're welcome.","I'm sorry.","Not at all."],
+["Communication","'Happy birthday!' - '___'","Thanks a lot!","The same to you.","I'm not.","Never mind."],
+["Communication","'Your English is very good!' - '___'","Thank you. It's kind of you to say so.","No, it isn't.","I don't know.","Yes, it's very good."],
+["Communication","'What do you usually do at weekends?' - '___'","I help my mum with the housework.","I'm going to the cinema now.","I did it yesterday.","Yes, I usually do."],
+["Communication","'Shall we clean the park on Sunday?' - '___'","Yes, let's.","Yes, you shall.","No, I don't.","You're welcome."],
+["Communication","Which is a polite way to disagree?","I see your point, but I think...","That's stupid.","You're wrong!","Shut up."]
+];
+
+</script>
+<script>
+const $ = id => document.getElementById(id);
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const ALL = QUESTIONS.map((r, i) => ({ id: i, cat: r[0], q: r[1], correct: r[2], wrong: [r[3], r[4], r[5]], exp: r[6] || '' }));
+let list = [], idx = 0, score = 0, wrongs = [], locked = false;
+
+function loadStats() { try { return JSON.parse(localStorage.getItem('e10stats')) || { done: 0, correct: 0, best: 0 }; } catch (e) { return { done: 0, correct: 0, best: 0 }; } }
+function saveStats(s) { try { localStorage.setItem('e10stats', JSON.stringify(s)); } catch (e) {} }
+function show(id) { ['home', 'quiz', 'result'].forEach(x => $(x).classList.toggle('hidden', x !== id)); window.scrollTo(0, 0); }
+
+function initHome() {
+  $('total').textContent = ALL.length;
+  const cats = [...new Set(ALL.map(q => q.cat))];
+  $('cat').innerHTML = '<option value="">Tất cả chủ đề (' + ALL.length + ')</option>' +
+    cats.map(c => '<option value="' + c + '">' + c + ' (' + ALL.filter(q => q.cat === c).length + ')</option>').join('');
+  const s = loadStats();
+  $('stats').textContent = s.done ? 'Đã làm ' + s.done + ' câu · đúng ' + Math.round(s.correct / s.done * 100) + '% · điểm cao nhất: ' + s.best + '%' : '';
+  show('home');
+}
+
+function start(pool) {
+  list = shuffle(pool); idx = 0; score = 0; wrongs = [];
+  show('quiz'); render();
+}
+
+function render() {
+  const q = list[idx]; locked = false;
+  $('pos').textContent = 'Câu ' + (idx + 1) + '/' + list.length;
+  $('score').textContent = 'Đúng: ' + score;
+  $('prog').style.width = (idx / list.length * 100) + '%';
+  $('qcat').textContent = q.cat;
+  $('qtext').innerHTML = q.q;
+  $('exp').classList.add('hidden'); $('next').classList.add('hidden');
+  const opts = shuffle([q.correct, ...q.wrong]);
+  $('opts').innerHTML = '';
+  opts.forEach(o => {
+    const b = document.createElement('button');
+    b.className = 'opt'; b.textContent = o;
+    b.onclick = () => answer(b, o, q);
+    $('opts').appendChild(b);
+  });
+}
+
+function answer(btn, o, q) {
+  if (locked) return; locked = true;
+  const right = o === q.correct;
+  if (right) score++; else wrongs.push(q);
+  [...$('opts').children].forEach(b => { b.disabled = true; if (b.textContent === q.correct) b.classList.add('ok'); });
+  if (!right) btn.classList.add('bad');
+  $('score').textContent = 'Đúng: ' + score;
+  if (q.exp) { $('exp').textContent = '💡 ' + q.exp; $('exp').classList.remove('hidden'); }
+  $('next').textContent = idx === list.length - 1 ? 'Xem kết quả' : 'Câu tiếp theo';
+  $('next').classList.remove('hidden');
+}
+
+function finish() {
+  const pct = Math.round(score / list.length * 100);
+  const s = loadStats(); s.done += list.length; s.correct += score; s.best = Math.max(s.best, pct); saveStats(s);
+  $('rscore').textContent = score + '/' + list.length;
+  $('rmsg').textContent = pct + '% — ' + (pct >= 90 ? 'Xuất sắc! 🎉' : pct >= 70 ? 'Khá tốt, cố thêm chút nữa! 👍' : pct >= 50 ? 'Cần ôn thêm 💪' : 'Hãy xem lại kiến thức và thử lại 📚');
+  $('retryWrong').classList.toggle('hidden', !wrongs.length);
+  $('wrongbox').classList.toggle('hidden', !wrongs.length);
+  $('wronglist').innerHTML = wrongs.map(w => '<div class="wrongitem">' + w.q + '<br>→ <b>' + w.correct + '</b>' + (w.exp ? '<br><i>' + w.exp + '</i>' : '') + '</div>').join('');
+  show('result');
+}
+
+$('start').onclick = () => {
+  const c = $('cat').value, n = +$('num').value;
+  let pool = ALL.filter(q => !c || q.cat === c);
+  if (n && n < pool.length) pool = shuffle(pool).slice(0, n);
+  start(pool);
+};
+$('next').onclick = () => { idx++; idx >= list.length ? finish() : render(); };
+$('quit').onclick = () => { if (confirm('Thoát bài làm hiện tại?')) initHome(); };
+$('again').onclick = initHome;
+$('retryWrong').onclick = () => start(wrongs.slice());
+initHome();
+</script>
+</body>
+</html>
